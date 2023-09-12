@@ -21,7 +21,6 @@ package syncer
 import (
 	"context"
 	"fmt"
-	"github.com/rs/zerolog"
 	"reflect"
 	"strings"
 	"sync"
