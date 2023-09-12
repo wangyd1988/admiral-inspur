@@ -22,7 +22,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	resourceUtil "github.com/submariner-io/admiral/pkg/resource"
+	resourceUtil "github.com/wangyd1988/admiral-inspur/pkg/resource"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"

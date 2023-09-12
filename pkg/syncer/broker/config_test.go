@@ -20,7 +20,7 @@ package broker_test
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/submariner-io/admiral/pkg/syncer/broker"
+	"github.com/wangyd1988/admiral-inspur/pkg/syncer/broker"
 )
 
 var _ = Describe("Broker configuration", func() {

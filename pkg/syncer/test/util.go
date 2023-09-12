@@ -24,8 +24,8 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/submariner-io/admiral/pkg/federate"
-	resourceUtil "github.com/submariner-io/admiral/pkg/resource"
+	"github.com/wangyd1988/admiral-inspur/pkg/federate"
+	resourceUtil "github.com/wangyd1988/admiral-inspur/pkg/resource"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metaapi "k8s.io/apimachinery/pkg/api/meta"

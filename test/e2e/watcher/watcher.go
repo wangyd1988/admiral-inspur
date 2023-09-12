@@ -21,9 +21,9 @@ package syncer
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/submariner-io/admiral/pkg/watcher"
-	testV1 "github.com/submariner-io/admiral/test/apis/admiral.submariner.io/v1"
-	"github.com/submariner-io/admiral/test/e2e/util"
+	"github.com/wangyd1988/admiral-inspur/pkg/watcher"
+	testV1 "github.com/wangyd1988/admiral-inspur/test/apis/admiral.submariner.io/v1"
+	"github.com/wangyd1988/admiral-inspur/test/e2e/util"
 	"github.com/submariner-io/shipyard/test/e2e/framework"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"

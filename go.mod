@@ -1,4 +1,4 @@
-module github.com/submariner-io/admiral
+module github.com/wangyd1988/admiral-inspur
 
 go 1.19
 

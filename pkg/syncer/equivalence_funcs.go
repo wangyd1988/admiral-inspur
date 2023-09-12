@@ -21,7 +21,7 @@ package syncer
 import (
 	"reflect"
 
-	"github.com/submariner-io/admiral/pkg/util"
+	"github.com/wangyd1988/admiral-inspur/pkg/util"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )

@@ -19,7 +19,7 @@ limitations under the License.
 package broker
 
 import (
-	"github.com/submariner-io/admiral/pkg/federate"
+	"github.com/wangyd1988/admiral-inspur/pkg/federate"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/client-go/dynamic"
 )

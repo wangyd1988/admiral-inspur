@@ -22,8 +22,8 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"github.com/submariner-io/admiral/pkg/resource"
-	"github.com/submariner-io/admiral/pkg/util"
+	"github.com/wangyd1988/admiral-inspur/pkg/resource"
+	"github.com/wangyd1988/admiral-inspur/pkg/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

@@ -22,8 +22,8 @@ package federate
 import (
 	"context"
 
-	"github.com/submariner-io/admiral/pkg/log"
-	"github.com/submariner-io/admiral/pkg/util"
+	"github.com/wangyd1988/admiral-inspur/pkg/log"
+	"github.com/wangyd1988/admiral-inspur/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
