@@ -21,7 +21,9 @@ package syncer
 import (
 	"context"
 	"fmt"
+	"github.com/rs/zerolog"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -47,6 +49,10 @@ import (
 )
 
 const OrigNamespaceLabelKey = "submariner-io/originatingNamespace"
+
+var ErrResourceNotsupported = "could not find the requested resource"
+var EndpointSliceVersions = []string{"v1", "v1beta1"}
+var EndpointSliceKind = "EndpointSlice"
 
 type SyncDirection int
 
@@ -461,6 +467,22 @@ func (r *resourceSyncer) processNextWorkItem(key, _, _ string) (bool, error) {
 		r.log.V(log.LIBDEBUG).Infof("Syncer %q syncing resource %q", r.config.Name, resource.GetName())
 
 		err = r.config.Federator.Distribute(resource)
+
+		// yd modify
+		utilruntime.HandleError(fmt.Errorf("#processNextWorkItem,resource.GetKind():%v, err:%w;", resource.GetKind(), err))
+		if err != nil && strings.EqualFold(resource.GetKind(), EndpointSliceKind) && strings.Contains(err.Error(), ErrResourceNotsupported) {
+			for _, endpointSliceVersion := range EndpointSliceVersions {
+				utilruntime.HandleError(fmt.Errorf("#endpointSliceVersion:%v",endpointSliceVersion))
+				if strings.EqualFold(resource.GetAPIVersion(), endpointSliceVersion) {
+					continue
+				}
+				resource.SetAPIVersion(endpointSliceVersion)
+				utilruntime.HandleError(fmt.Errorf("#resource:%v",resource))
+				err = r.config.Federator.Distribute(resource)
+				utilruntime.HandleError(fmt.Errorf("#processNextWorkItem,resource.GetKind():%v, err:%w;", resource.GetKind(), err))
+			}
+		}
+
 		if err != nil || r.onSuccessfulSync(resource, transformed, op) {
 			return true, errors.Wrapf(err, "error distributing resource %q", key)
 		}
