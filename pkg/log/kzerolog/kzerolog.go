@@ -29,7 +29,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	loga "github.com/submariner-io/admiral/pkg/log"
+	loga "github.com/wangyd1988/admiral-inspur/pkg/log"
 	"k8s.io/klog"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -130,7 +130,7 @@ func (ctx *zeroLogContext) calculateSkipFrames() int {
 
 		// We want to skip call frames in this package and go-logr but controller-runtime may have a DelegatingLogSink
 		// in between so skip that as well.
-		if strings.HasPrefix(frame.Function, "github.com/submariner-io/admiral/pkg/log") ||
+		if strings.HasPrefix(frame.Function, "github.com/wangyd1988/admiral-inspur/pkg/log") ||
 			strings.HasPrefix(frame.Function, "github.com/go-logr") ||
 			strings.HasPrefix(frame.Function, "sigs.k8s.io/controller-runtime/pkg/log") {
 			skipFrames++

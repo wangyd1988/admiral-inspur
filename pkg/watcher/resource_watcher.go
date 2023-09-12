@@ -26,9 +26,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/submariner-io/admiral/pkg/federate"
-	"github.com/submariner-io/admiral/pkg/syncer"
-	"github.com/submariner-io/admiral/pkg/util"
+	"github.com/wangyd1988/admiral-inspur/pkg/federate"
+	"github.com/wangyd1988/admiral-inspur/pkg/syncer"
+	"github.com/wangyd1988/admiral-inspur/pkg/util"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"

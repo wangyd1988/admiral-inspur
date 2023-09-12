@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/submariner-io/admiral/pkg/log"
+	"github.com/wangyd1988/admiral-inspur/pkg/log"
 	"golang.org/x/time/rate"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"

@@ -21,7 +21,7 @@ package fake
 import (
 	"fmt"
 
-	"github.com/submariner-io/admiral/pkg/resource"
+	"github.com/wangyd1988/admiral-inspur/pkg/resource"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"

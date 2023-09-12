@@ -25,8 +25,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/submariner-io/admiral/pkg/log"
-	"github.com/submariner-io/admiral/pkg/log/kzerolog"
+	"github.com/wangyd1988/admiral-inspur/pkg/log"
+	"github.com/wangyd1988/admiral-inspur/pkg/log/kzerolog"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 

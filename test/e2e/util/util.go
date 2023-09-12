@@ -24,8 +24,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/submariner-io/admiral/pkg/syncer/test"
-	testV1 "github.com/submariner-io/admiral/test/apis/admiral.submariner.io/v1"
+	"github.com/wangyd1988/admiral-inspur/pkg/syncer/test"
+	testV1 "github.com/wangyd1988/admiral-inspur/test/apis/admiral.submariner.io/v1"
 	"github.com/submariner-io/shipyard/test/e2e/framework"
 	metaapi "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
