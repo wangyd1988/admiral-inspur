@@ -20,9 +20,12 @@ package util
 
 import (
 	"fmt"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"strings"
 
 	"github.com/pkg/errors"
 	resourceUtil "github.com/wangyd1988/admiral-inspur/pkg/resource"
+	discoveryV1 "k8s.io/api/discovery/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,6 +42,27 @@ const (
 	StatusField      = "status"
 )
 
+var ErrMapperNotsupported = "no matches for kind"
+var EndpointSliceKind = "EndpointSlice"
+var EndpointSliceResource = "endpointslices"
+var verionToGVR = make(map[string]schema.GroupVersionResource)
+
+func init() {
+	endpointSliceGVR := schema.GroupVersionResource{
+		Group:    discoveryV1.GroupName,
+		Version:  discoveryV1.SchemeGroupVersion.Version,
+		Resource: EndpointSliceResource,
+	}
+
+	SchemeGroupVersionV1beta1 := schema.GroupVersion{Group: discoveryV1.GroupName, Version: "v1beta1"}
+	endpointSliceV1Beta1GVR := schema.GroupVersionResource{
+		Group:    discoveryV1.GroupName,
+		Version:  SchemeGroupVersionV1beta1.Version,
+		Resource: EndpointSliceResource,
+	}
+	verionToGVR[endpointSliceGVR.Version] = endpointSliceGVR
+	verionToGVR[endpointSliceV1Beta1GVR.Version] = endpointSliceV1Beta1GVR
+}
 func BuildRestMapper(restConfig *rest.Config) (meta.RESTMapper, error) {
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(restConfig)
 	if err != nil {
@@ -71,6 +95,22 @@ func ToUnstructuredResource(from runtime.Object, restMapper meta.RESTMapper,
 func FindGroupVersionResource(from *unstructured.Unstructured, restMapper meta.RESTMapper) (*schema.GroupVersionResource, error) {
 	gvk := from.GroupVersionKind()
 	mapping, err := restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+
+	// yd modify
+	if err != nil && strings.Contains(err.Error(), ErrMapperNotsupported) && strings.EqualFold(gvk.Kind, EndpointSliceKind) {
+		// 手动组装
+		utilruntime.HandleError(fmt.Errorf("#print error gvr:%v", err.Error()))
+		for endpointSliceVersion, gvr := range verionToGVR {
+			utilruntime.HandleError(fmt.Errorf("#endpointSliceVersion:%v", endpointSliceVersion))
+			// 此处为不等于，猜测是从本地通过GVK查询对应的GVR
+			if !strings.EqualFold(gvk.Version, endpointSliceVersion) {
+				continue
+			}
+			utilruntime.HandleError(fmt.Errorf("#generate new gvr:%v", gvr))
+			return &gvr, nil
+		}
+	}
+
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting REST mapper for %#v", gvk)
 	}
