@@ -21,6 +21,7 @@ package syncer
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"reflect"
 	"strings"
@@ -39,6 +40,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	discovery "k8s.io/api/discovery/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -48,8 +50,8 @@ import (
 
 const OrigNamespaceLabelKey = "submariner-io/originatingNamespace"
 var ErrResourceNotsupported = "could not find the requested resource"
-var EndpointSliceVersions = []string{"v1", "v1beta1"}
 var EndpointSliceKind = "EndpointSlice"
+var EndpointSliceVersions [2]string
 
 type SyncDirection int
 
@@ -62,7 +64,11 @@ const (
 	// Resources are synced from a remote source to a local source.
 	RemoteToLocal
 )
-
+func init() {
+	SchemeGroupVersionV1beta1 := schema.GroupVersion{Group: discovery.GroupName, Version: "v1beta1"}
+	SchemeGroupVersionV1 := schema.GroupVersion{Group: discovery.GroupName, Version: "v1"}
+		EndpointSliceVersions = [2]string{SchemeGroupVersionV1beta1.Version, SchemeGroupVersionV1.Version}
+}
 func (d SyncDirection) String() string {
 	switch d {
 	case LocalToRemote:
