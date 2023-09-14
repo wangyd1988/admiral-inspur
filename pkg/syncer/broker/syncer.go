@@ -20,6 +20,7 @@ package broker
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
 	"path/filepath"
@@ -152,6 +153,7 @@ type Syncer struct {
 
 var logger = log.Logger{Logger: logf.Log.WithName("BrokerSyncer")}
 
+
 // NewSyncer creates a Syncer that performs bi-directional syncing of resources between a local source and a central broker.
 func NewSyncer(config SyncerConfig) (*Syncer, error) { //nolint:gocritic // Minimal performance hit, we modify our copy
 	if len(config.ResourceConfigs) == 0 {
@@ -267,6 +269,67 @@ func NewSyncer(config SyncerConfig) (*Syncer, error) { //nolint:gocritic // Mini
 	}
 
 	return brokerSyncer, nil
+}
+func CreateBrokerClientVersion(config *SyncerConfig) error {
+	var gvr  *schema.GroupVersionResource
+
+	var authorized bool
+	var err error
+
+	if config.BrokerRestConfig == nil {
+		spec, e := getBrokerSpecification()
+		if e != nil {
+			return e
+		}
+
+		config.BrokerNamespace = spec.RemoteNamespace
+
+		// If we have a secret, try to use it
+		if spec.Secret != "" {
+			config.BrokerRestConfig, authorized, err = resource.GetAuthorizedRestConfigFromDataByYD(spec.APIServer,
+				filepath.Join(SecretPath(spec.Secret), "token"), filepath.Join(SecretPath(spec.Secret), "ca.crt"),
+				&rest.TLSClientConfig{Insecure: spec.Insecure}, *gvr, spec.RemoteNamespace)
+			if err != nil {
+				logger.Errorf(err, "Error accessing the %s secret", spec.Secret)
+			}
+		}
+
+		// If we encountered an error, or we don't have a secret, use the values in the spec
+		if spec.Secret == "" || err != nil {
+			config.BrokerRestConfig, authorized, err = resource.GetAuthorizedRestConfigFromDataByYD(spec.APIServer, spec.APIServerToken, spec.Ca,
+				&rest.TLSClientConfig{Insecure: spec.Insecure}, *gvr, spec.RemoteNamespace)
+		}
+	}
+
+	if !authorized {
+		return errors.Wrap(err, "error authorizing access to the broker API server")
+	}
+
+	if err != nil {
+		logger.Error(err, "Error accessing the broker API server")
+	}
+
+	config.BrokerClient, err = dynamic.NewForConfig(config.BrokerRestConfig)
+	if err != nil {
+		logger.Error(err, "Error accessing the broker API server")
+	}
+
+	utilruntime.HandleError(fmt.Errorf("get BrokerClientVersion begin"))
+	clientset, err := kubernetes.NewForConfig(config.BrokerRestConfig)
+	if err != nil {
+		utilruntime.HandleError(fmt.Errorf("#createBrokerClient, kubernetes.NewForConfig err: %v", err))
+		return nil
+	}
+	// 使用 DiscoveryClient 获取服务器版本信息
+	discoveryClient := clientset.Discovery()
+	serverVersion, err := discoveryClient.ServerVersion()
+	if err != nil {
+		utilruntime.HandleError(fmt.Errorf("#createBrokerClient, discoveryClient.ServerVersion()err: %v", err))
+		return nil
+	}
+	config.BrokerClientVersion = serverVersion.String()
+	utilruntime.HandleError(fmt.Errorf("get BrokerClientVersion end,BrokerClientVersion: %v",config.BrokerClientVersion))
+	return errors.Wrap(err, "error creating dynamic client")
 }
 
 func createBrokerClient(config *SyncerConfig) error {
