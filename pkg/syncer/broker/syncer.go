@@ -273,7 +273,7 @@ func NewSyncer(config SyncerConfig) (*Syncer, error) { //nolint:gocritic // Mini
 func CreateBrokerClientVersion(config *SyncerConfig) error {
 	var gvr  *schema.GroupVersionResource
 
-	var authorized bool
+	var authorized  = true
 	var err error
 
 	if config.BrokerRestConfig == nil {
