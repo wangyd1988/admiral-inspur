@@ -60,24 +60,10 @@ func GetAuthorizedRestConfigFromDataByYD(apiServer, apiServerToken, caData strin
 	// First try a REST config without the CA trust chain
 	restConfig, err = BuildRestConfigFromData(apiServer, apiServerToken, "", tls)
 	if err != nil {
-		return
-	}
-
-	/*authorized, err = IsAuthorizedFor(restConfig, gvr, namespace)
-	if !authorized {
-		// Now try with the trust chain
 		restConfig, err = BuildRestConfigFromData(apiServer, apiServerToken, caData, tls)
-		if err != nil {
-			return
-		}
-
-		authorized, err = IsAuthorizedFor(restConfig, gvr, namespace)
-	}*/
-
+	}
 	return
 }
-
-
 
 func GetAuthorizedRestConfigFromFiles(apiServer, apiServerTokenFile, caFile string, tls *rest.TLSClientConfig,
 	gvr schema.GroupVersionResource, namespace string,
