@@ -20,7 +20,6 @@ package broker
 
 import (
 	"fmt"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
 	"path/filepath"
@@ -271,7 +270,6 @@ func NewSyncer(config SyncerConfig) (*Syncer, error) { //nolint:gocritic // Mini
 	return brokerSyncer, nil
 }
 func CreateBrokerClientVersion(config *SyncerConfig) error {
-	var gvr  *schema.GroupVersionResource
 
 	var authorized  = true
 	var err error
@@ -288,7 +286,7 @@ func CreateBrokerClientVersion(config *SyncerConfig) error {
 		if spec.Secret != "" {
 			config.BrokerRestConfig, authorized, err = resource.GetAuthorizedRestConfigFromDataByYD(spec.APIServer,
 				filepath.Join(SecretPath(spec.Secret), "token"), filepath.Join(SecretPath(spec.Secret), "ca.crt"),
-				&rest.TLSClientConfig{Insecure: spec.Insecure}, *gvr, spec.RemoteNamespace)
+				&rest.TLSClientConfig{Insecure: spec.Insecure})
 			if err != nil {
 				logger.Errorf(err, "Error accessing the %s secret", spec.Secret)
 			}
@@ -296,8 +294,12 @@ func CreateBrokerClientVersion(config *SyncerConfig) error {
 
 		// If we encountered an error, or we don't have a secret, use the values in the spec
 		if spec.Secret == "" || err != nil {
+			utilruntime.HandleError(fmt.Errorf("#CreateBrokerClientVersion,spec.APIServer:%v, spec.APIServerToken:%v," +
+				"spec.Ca:%v,&rest.TLSClientConfig{Insecure: spec.Insecure}:%v",spec.APIServer, spec.APIServerToken, spec.Ca,
+				&rest.TLSClientConfig{Insecure: spec.Insecure} ))
+
 			config.BrokerRestConfig, authorized, err = resource.GetAuthorizedRestConfigFromDataByYD(spec.APIServer, spec.APIServerToken, spec.Ca,
-				&rest.TLSClientConfig{Insecure: spec.Insecure}, *gvr, spec.RemoteNamespace)
+				&rest.TLSClientConfig{Insecure: spec.Insecure})
 		}
 	}
 
