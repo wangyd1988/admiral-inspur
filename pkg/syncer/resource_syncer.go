@@ -35,12 +35,12 @@ import (
 	resourceUtil "github.com/wangyd1988/admiral-inspur/pkg/resource"
 	"github.com/wangyd1988/admiral-inspur/pkg/util"
 	"github.com/wangyd1988/admiral-inspur/pkg/workqueue"
+	discovery "k8s.io/api/discovery/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	discovery "k8s.io/api/discovery/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -49,6 +49,7 @@ import (
 )
 
 const OrigNamespaceLabelKey = "submariner-io/originatingNamespace"
+
 var ErrResourceNotsupported = "could not find the requested resource"
 var EndpointSliceKind = "EndpointSlice"
 var verionToGVK = make(map[string]schema.GroupVersionKind)
@@ -64,19 +65,20 @@ const (
 	// Resources are synced from a remote source to a local source.
 	RemoteToLocal
 )
+
 func init() {
 
 	endpointSliceGVK := schema.GroupVersionKind{
-		Group:    discovery.GroupName,
-		Version:  discovery.SchemeGroupVersion.Version,
-		Kind: "EndpointSlice",
+		Group:   discovery.GroupName,
+		Version: discovery.SchemeGroupVersion.Version,
+		Kind:    "EndpointSlice",
 	}
 
 	SchemeGroupVersionV1beta1 := schema.GroupVersion{Group: discovery.GroupName, Version: "v1beta1"}
-	endpointSliceV1Beta1GVK:= schema.GroupVersionKind{
-		Group:    discovery.GroupName,
-		Version:  SchemeGroupVersionV1beta1.Version,
-		Kind: "EndpointSlice",
+	endpointSliceV1Beta1GVK := schema.GroupVersionKind{
+		Group:   discovery.GroupName,
+		Version: SchemeGroupVersionV1beta1.Version,
+		Kind:    "EndpointSlice",
 	}
 	verionToGVK[endpointSliceGVK.Version] = endpointSliceGVK
 	verionToGVK[endpointSliceV1Beta1GVK.Version] = endpointSliceV1Beta1GVK
@@ -454,18 +456,17 @@ func (r *resourceSyncer) processNextWorkItem(key, name, ns string) (bool, error)
 		// yd modify
 		utilruntime.HandleError(fmt.Errorf("#processNextWorkItem,resource.GetKind():%v, err:%w;", resource.GetKind(), err))
 		if err != nil && strings.EqualFold(resource.GetKind(), EndpointSliceKind) && strings.Contains(err.Error(), ErrResourceNotsupported) {
-			for endpointSliceVersion,gvk := range verionToGVK {
-				utilruntime.HandleError(fmt.Errorf("#endpointSliceVersion:%v",endpointSliceVersion))
+			for endpointSliceVersion, gvk := range verionToGVK {
+				utilruntime.HandleError(fmt.Errorf("#endpointSliceVersion:%v", endpointSliceVersion))
 				if strings.EqualFold(resource.GetAPIVersion(), endpointSliceVersion) {
 					continue
 				}
 				resource.SetGroupVersionKind(gvk)
-				utilruntime.HandleError(fmt.Errorf("#resource:%v",resource))
+				utilruntime.HandleError(fmt.Errorf("#resource:%v", resource))
 				err = r.config.Federator.Distribute(resource)
 				utilruntime.HandleError(fmt.Errorf("#processNextWorkItem,resource.GetKind():%v, err:%w;", resource.GetKind(), err))
 			}
 		}
-
 
 		if err != nil || r.onSuccessfulSync(resource, transformed, op) {
 			return true, errors.Wrapf(err, "error distributing resource %q", key)

@@ -20,6 +20,8 @@ package broker
 
 import (
 	"fmt"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes"
 	"path/filepath"
 	"reflect"
 	"time"
@@ -123,6 +125,9 @@ type SyncerConfig struct {
 	// in lieu of the BrokerRestConfig. If not specified, one is created from the BrokerRestConfig.
 	BrokerClient dynamic.Interface
 
+	// yd modfiy
+	// broker k8s version
+	BrokerClientVersion string
 	// BrokerNamespace the namespace in the broker to which resources from the local source will be synced. If not
 	// specified, the namespace is obtained from an environment variable.
 	BrokerNamespace string
@@ -135,13 +140,14 @@ type SyncerConfig struct {
 }
 
 type Syncer struct {
-	syncers         []syncer.Interface
-	localSyncers    map[reflect.Type]syncer.Interface
-	localFederator  federate.Federator
-	remoteFederator federate.Federator
-	brokerNamespace string
-	brokerClient    dynamic.Interface
-	localClient     dynamic.Interface
+	syncers             []syncer.Interface
+	localSyncers        map[reflect.Type]syncer.Interface
+	localFederator      federate.Federator
+	remoteFederator     federate.Federator
+	brokerNamespace     string
+	brokerClientVersion string
+	brokerClient        dynamic.Interface
+	localClient         dynamic.Interface
 }
 
 var logger = log.Logger{Logger: logf.Log.WithName("BrokerSyncer")}
@@ -175,11 +181,12 @@ func NewSyncer(config SyncerConfig) (*Syncer, error) { //nolint:gocritic // Mini
 	}
 
 	brokerSyncer := &Syncer{
-		syncers:         []syncer.Interface{},
-		localSyncers:    make(map[reflect.Type]syncer.Interface),
-		brokerNamespace: config.BrokerNamespace,
-		brokerClient:    config.BrokerClient,
-		localClient:     config.LocalClient,
+		syncers:             []syncer.Interface{},
+		localSyncers:        make(map[reflect.Type]syncer.Interface),
+		brokerNamespace:     config.BrokerNamespace,
+		brokerClientVersion: config.BrokerClientVersion,
+		brokerClient:        config.BrokerClient,
+		localClient:         config.LocalClient,
 	}
 
 	brokerSyncer.remoteFederator = NewFederator(config.BrokerClient, config.RestMapper, config.BrokerNamespace, config.LocalClusterID)
@@ -308,7 +315,25 @@ func createBrokerClient(config *SyncerConfig) error {
 	}
 
 	config.BrokerClient, err = dynamic.NewForConfig(config.BrokerRestConfig)
+	if err != nil {
+		logger.Error(err, "Error accessing the broker API server")
+	}
 
+	utilruntime.HandleError(fmt.Errorf("get BrokerClientVersion begin"))
+	clientset, err := kubernetes.NewForConfig(config.BrokerRestConfig)
+	if err != nil {
+		utilruntime.HandleError(fmt.Errorf("#createBrokerClient, kubernetes.NewForConfig err: %v", err))
+		return nil
+	}
+	// 使用 DiscoveryClient 获取服务器版本信息
+	discoveryClient := clientset.Discovery()
+	serverVersion, err := discoveryClient.ServerVersion()
+	if err != nil {
+		utilruntime.HandleError(fmt.Errorf("#createBrokerClient, discoveryClient.ServerVersion()err: %v", err))
+		return nil
+	}
+	config.BrokerClientVersion = serverVersion.String()
+	utilruntime.HandleError(fmt.Errorf("get BrokerClientVersion end,BrokerClientVersion: %v",config.BrokerClientVersion))
 	return errors.Wrap(err, "error creating dynamic client")
 }
 
@@ -382,4 +407,8 @@ func (s *Syncer) GetBrokerClient() dynamic.Interface {
 
 func (s *Syncer) GetLocalClient() dynamic.Interface {
 	return s.localClient
+}
+
+func (s *Syncer) GetBrokerClientVersion() string {
+	return s.brokerClientVersion
 }
