@@ -300,11 +300,9 @@ func CreateBrokerClientVersion(config *SyncerConfig) error {
 
 			config.BrokerRestConfig, authorized, err = resource.GetAuthorizedRestConfigFromDataByYD(spec.APIServer, spec.APIServerToken, spec.Ca,
 				&rest.TLSClientConfig{Insecure: spec.Insecure})
+			utilruntime.HandleError(fmt.Errorf("#GetAuthorizedRestConfigFromDataByYD,BrokerRestConfig:%v, authorized:%v,err:%v",
+				config.BrokerRestConfig,authorized,err))
 		}
-	}
-
-	if !authorized {
-		return errors.Wrap(err, "error authorizing access to the broker API server")
 	}
 
 	if err != nil {
@@ -315,6 +313,8 @@ func CreateBrokerClientVersion(config *SyncerConfig) error {
 	if err != nil {
 		logger.Error(err, "Error accessing the broker API server")
 	}
+	utilruntime.HandleError(fmt.Errorf("#dynamic.NewForConfig(config.BrokerRestConfig),config.BrokerClient,:%v, err:%v",
+		config.BrokerClient,err))
 
 	utilruntime.HandleError(fmt.Errorf("get BrokerClientVersion begin"))
 	clientset, err := kubernetes.NewForConfig(config.BrokerRestConfig)
@@ -322,6 +322,9 @@ func CreateBrokerClientVersion(config *SyncerConfig) error {
 		utilruntime.HandleError(fmt.Errorf("#createBrokerClient, kubernetes.NewForConfig err: %v", err))
 		return nil
 	}
+	utilruntime.HandleError(fmt.Errorf("#kubernetes.NewForConfig,clientset:%v, err:%v",
+		clientset,err))
+
 	// 使用 DiscoveryClient 获取服务器版本信息
 	discoveryClient := clientset.Discovery()
 	serverVersion, err := discoveryClient.ServerVersion()
