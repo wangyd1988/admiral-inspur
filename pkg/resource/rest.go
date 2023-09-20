@@ -23,6 +23,8 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
+	discoveryV1 "k8s.io/api/discovery/v1"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -54,14 +56,58 @@ func GetAuthorizedRestConfigFromData(apiServer, apiServerToken, caData string, t
 
 	return
 }
-func GetAuthorizedRestConfigFromDataByYD(apiServer, apiServerToken, caData string, tls *rest.TLSClientConfig,
+func GetAuthorizedRestConfigFromDataByYD(apiServer, apiServerToken, caData string, tls *rest.TLSClientConfig,namespace string,
 ) (restConfig *rest.Config, authorized bool, err error) {
+	var EndpointSliceResource = "endpointslices"
+	endpointSliceGVR := schema.GroupVersionResource{
+		Group:    discoveryV1.GroupName,
+		Version:  discoveryV1.SchemeGroupVersion.Version,
+		Resource: EndpointSliceResource,
+	}
+
+	SchemeGroupVersionV1beta1 := schema.GroupVersion{Group: discoveryV1.GroupName, Version: "v1beta1"}
+	endpointSliceV1Beta1GVR := schema.GroupVersionResource{
+		Group:    discoveryV1.GroupName,
+		Version:  SchemeGroupVersionV1beta1.Version,
+		Resource: EndpointSliceResource,
+	}
+
 	// First try a REST config without the CA trust chain
 	restConfig, err = BuildRestConfigFromData(apiServer, apiServerToken, "", tls)
 	if err != nil {
-		restConfig, err = BuildRestConfigFromData(apiServer, apiServerToken, caData, tls)
+		return
 	}
+
+	authorized, err = IsAuthorizedFor(restConfig, endpointSliceV1Beta1GVR, namespace)
+	if !authorized {
+		// Now try with the trust chain
+		restConfig, err = BuildRestConfigFromData(apiServer, apiServerToken, caData, tls)
+		if err != nil {
+			return
+		}
+		utilruntime.HandleError(fmt.Errorf("#GetAuthorizedRestConfigFromDataByYD--BuildRestConfigFromData,err:%v, err"))
+		authorized, err = IsAuthorizedFor(restConfig, endpointSliceV1Beta1GVR, namespace)
+	}
+	utilruntime.HandleError(fmt.Errorf("#GetAuthorizedRestConfigFromDataByYD--IsAuthorizedFor,err:%v, err"))
+
+	if  err == nil {
+		return
+	}
+
+
+	authorized, err = IsAuthorizedFor(restConfig, endpointSliceGVR, namespace)
+	if !authorized {
+		// Now try with the trust chain
+		restConfig, err = BuildRestConfigFromData(apiServer, apiServerToken, caData, tls)
+		if err != nil {
+			return
+		}
+		utilruntime.HandleError(fmt.Errorf("#2GetAuthorizedRestConfigFromDataByYD--BuildRestConfigFromData,err:%v, err"))
+		authorized, err = IsAuthorizedFor(restConfig, endpointSliceGVR, namespace)
+	}
+	utilruntime.HandleError(fmt.Errorf("#2GetAuthorizedRestConfigFromDataByYD--IsAuthorizedFor,err:%v, err"))
 	return
+
 }
 
 func GetAuthorizedRestConfigFromFiles(apiServer, apiServerTokenFile, caFile string, tls *rest.TLSClientConfig,

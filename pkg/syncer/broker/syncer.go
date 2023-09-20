@@ -286,7 +286,7 @@ func CreateBrokerClientVersion(config *SyncerConfig) error {
 		if spec.Secret != "" {
 			config.BrokerRestConfig, authorized, err = resource.GetAuthorizedRestConfigFromDataByYD(spec.APIServer,
 				filepath.Join(SecretPath(spec.Secret), "token"), filepath.Join(SecretPath(spec.Secret), "ca.crt"),
-				&rest.TLSClientConfig{Insecure: spec.Insecure})
+				&rest.TLSClientConfig{Insecure: spec.Insecure},spec.RemoteNamespace)
 			if err != nil {
 				logger.Errorf(err, "Error accessing the %s secret", spec.Secret)
 			}
@@ -299,9 +299,9 @@ func CreateBrokerClientVersion(config *SyncerConfig) error {
 				&rest.TLSClientConfig{Insecure: spec.Insecure} ))
 
 			config.BrokerRestConfig, authorized, err = resource.GetAuthorizedRestConfigFromDataByYD(spec.APIServer, spec.APIServerToken, spec.Ca,
-				&rest.TLSClientConfig{Insecure: spec.Insecure})
-			utilruntime.HandleError(fmt.Errorf("#GetAuthorizedRestConfigFromDataByYD,BrokerRestConfig:%v, authorized:%v,err:%v",
-				config.BrokerRestConfig,authorized,err))
+				&rest.TLSClientConfig{Insecure: spec.Insecure},spec.RemoteNamespace)
+			utilruntime.HandleError(fmt.Errorf("#GetAuthorizedRestConfigFromDataByYD,BrokerRestConfig:%v, authorized:%v,err:%v,namespace:%v",
+				config.BrokerRestConfig,authorized,err,spec.RemoteNamespace))
 		}
 	}
 
