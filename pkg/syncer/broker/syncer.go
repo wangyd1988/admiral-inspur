@@ -284,7 +284,7 @@ func CreateBrokerClientVersion(config *SyncerConfig) error {
 
 		// If we have a secret, try to use it
 		if spec.Secret != "" {
-			config.BrokerRestConfig, authorized, err = resource.GetAuthorizedRestConfigFromDataByYD(spec.APIServer,
+			config.BrokerRestConfig, authorized, err = resource.GetAuthorizedRestConfigFromFilesByYD(spec.APIServer,
 				filepath.Join(SecretPath(spec.Secret), "token"), filepath.Join(SecretPath(spec.Secret), "ca.crt"),
 				&rest.TLSClientConfig{Insecure: spec.Insecure},spec.RemoteNamespace)
 			if err != nil {
@@ -327,6 +327,7 @@ func CreateBrokerClientVersion(config *SyncerConfig) error {
 
 	// 使用 DiscoveryClient 获取服务器版本信息
 	discoveryClient := clientset.Discovery()
+
 	serverVersion, err := discoveryClient.ServerVersion()
 	if err != nil {
 		utilruntime.HandleError(fmt.Errorf("#createBrokerClient, discoveryClient.ServerVersion()err: %v", err))

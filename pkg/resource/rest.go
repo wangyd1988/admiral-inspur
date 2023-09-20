@@ -83,6 +83,7 @@ func GetAuthorizedRestConfigFromDataByYD(apiServer, apiServerToken, caData strin
 		// Now try with the trust chain
 		restConfig, err = BuildRestConfigFromData(apiServer, apiServerToken, caData, tls)
 		if err != nil {
+			utilruntime.HandleError(fmt.Errorf("#GetAuthorizedRestConfigFromDataByYD--BuildRestConfigFromData,err:%v, err"))
 			return
 		}
 		utilruntime.HandleError(fmt.Errorf("#GetAuthorizedRestConfigFromDataByYD--BuildRestConfigFromData,err:%v, err"))
@@ -109,6 +110,51 @@ func GetAuthorizedRestConfigFromDataByYD(apiServer, apiServerToken, caData strin
 	return
 
 }
+
+
+func GetAuthorizedRestConfigFromFilesByYD(apiServer, apiServerTokenFile, caFile string, tls *rest.TLSClientConfig, namespace string,
+) (restConfig *rest.Config, authorized bool, err error) {
+
+
+	var EndpointSliceResource = "endpointslices"
+	endpointSliceGVR := schema.GroupVersionResource{
+		Group:    discoveryV1.GroupName,
+		Version:  discoveryV1.SchemeGroupVersion.Version,
+		Resource: EndpointSliceResource,
+	}
+
+	SchemeGroupVersionV1beta1 := schema.GroupVersion{Group: discoveryV1.GroupName, Version: "v1beta1"}
+	endpointSliceV1Beta1GVR := schema.GroupVersionResource{
+		Group:    discoveryV1.GroupName,
+		Version:  SchemeGroupVersionV1beta1.Version,
+		Resource: EndpointSliceResource,
+	}
+
+	// First try a REST config without the CA trust chain
+	restConfig = BuildRestConfigFromFiles(apiServer, apiServerTokenFile, "", tls)
+	authorized, err = IsAuthorizedFor(restConfig, endpointSliceV1Beta1GVR, namespace)
+
+	if !authorized {
+		// Now try with the trust chain
+		restConfig = BuildRestConfigFromFiles(apiServer, apiServerTokenFile, caFile, tls)
+		authorized, err = IsAuthorizedFor(restConfig, endpointSliceV1Beta1GVR, namespace)
+	}
+
+	if err == nil {
+		return
+	}
+
+
+	authorized, err = IsAuthorizedFor(restConfig, endpointSliceGVR, namespace)
+
+	if !authorized {
+		// Now try with the trust chain
+		restConfig = BuildRestConfigFromFiles(apiServer, apiServerTokenFile, caFile, tls)
+		authorized, err = IsAuthorizedFor(restConfig, endpointSliceGVR, namespace)
+	}
+	return
+}
+
 
 func GetAuthorizedRestConfigFromFiles(apiServer, apiServerTokenFile, caFile string, tls *rest.TLSClientConfig,
 	gvr schema.GroupVersionResource, namespace string,
