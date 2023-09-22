@@ -24,8 +24,8 @@ import (
 	testV1 "github.com/wangyd1988/admiral-inspur/test/apis/admiral.submariner.io/v1"
 	_ "github.com/wangyd1988/admiral-inspur/test/e2e/syncer"
 	_ "github.com/wangyd1988/admiral-inspur/test/e2e/watcher"
-	"github.com/submariner-io/shipyard/test/e2e"
-	"github.com/submariner-io/shipyard/test/e2e/framework"
+	"github.com/wangyd1988/shipyard/test/e2e"
+	"github.com/wangyd1988/shipyard/test/e2e/framework"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 

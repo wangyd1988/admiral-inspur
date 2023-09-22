@@ -31,7 +31,7 @@ import (
 	"github.com/wangyd1988/admiral-inspur/pkg/syncer/broker"
 	testV1 "github.com/wangyd1988/admiral-inspur/test/apis/admiral.submariner.io/v1"
 	"github.com/wangyd1988/admiral-inspur/test/e2e/util"
-	"github.com/submariner-io/shipyard/test/e2e/framework"
+	"github.com/wangyd1988/shipyard/test/e2e/framework"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metaapi "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
